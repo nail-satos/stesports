@@ -6,3 +6,4 @@ matplotlib
 japanize-matplotlib
 seaborn
 imblearn
+chardet
