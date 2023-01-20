@@ -658,13 +658,14 @@ def view_overlap_image(img1, img2, caption_text):
 # アプリケーションのレイアウトを構築する関数
 def view_screen():
 
-    # サイドメニューの設定
-    usr_menus = ['【選択してください】', 'データの登録', 'データの確認', 'データの分析（全体）', 'データの分析（視線移動量）', 'データの分析（ミニマップ）', 'データの分析（戦闘ログ）', 'データの分析（ＨＰバー）', 'データの分析（武器弾薬）', 'データの分析（まばたき）', '視点のヒートマップ表示', 'プレイヤーレベルの診断']
-    usr_choice = st.sidebar.selectbox("メニューを選択してください", usr_menus)
-
+    # サイドメニューの設定（開発者用）
     dev_menus = ['《開発者用のメニュー》', '訓練データの登録', '解析データの作成', '解析データの出力', '解析モデルの訓練', ]
     dev_choice = st.sidebar.selectbox("開発者用メニュー", dev_menus, disabled =True)
 
+    # サイドメニューの設定（利用者用）
+    # usr_menus = ['【選択してください】', 'データの読込', 'データの確認', 'データの分析（全体）', 'データの分析（視線移動量）', 'データの分析（ミニマップ）', 'データの分析（戦闘ログ）', 'データの分析（ＨＰバー）', 'データの分析（武器弾薬）', 'データの分析（まばたき）', '視点のヒートマップ表示', 'プレイヤーレベルの診断']
+    usr_menus = ['【選択してください】', 'データの読込', '視点の可視化', 'データの分析', 'レベルの診断']
+    usr_choice = st.sidebar.selectbox("メニューを選択してください", usr_menus)
 
     ###************************************************************************###
     # 開発者用セクション《訓練データの登録》
@@ -863,7 +864,7 @@ def view_screen():
         st.image('title.png')
 
 
-    # メニュー：《データの登録》
+    # メニュー：《データの読込》
     if usr_menus.index(usr_choice) == 1:
 
         # ファイルアップローダー
@@ -900,31 +901,38 @@ def view_screen():
                 # データの前処理を行う関数を呼び出す
                 df_tmp = preprocess_data(df)
 
-                st.sidebar.success(f'視線データが正常に読み込めました\n\n《データの確認》に進んでください')
-                st.session_state['check_flg'] = True
+                # st.sidebar.success(f'視線データが正常に読み込めました\n\n《データの確認》に進んでください')
 
+                # データフレームから
+                # 経過時間・表示件数・データの先頭部分を画面に表示する関数
+                view_data(df)
+
+                # サイドバーのメッセージ
+                st.sidebar.success('データのプレビューを表示しました\n\n《データの分析》に進んでください')
+
+                st.session_state['check_flg'] = True
                 st.session_state['df_csv'] = df_tmp # データフレームをセッションステートに保存
 
 
-    # メニュー：《データの確認》
-    if usr_menus.index(usr_choice) == 2:
+    # # メニュー：《データの確認》
+    # if usr_menus.index(usr_choice) == 2:
 
-        if st.session_state['check_flg'] == True:
+    #     if st.session_state['check_flg'] == True:
 
-            df = st.session_state['df_csv']     # セッションステートから戻す
+    #         df = st.session_state['df_csv']     # セッションステートから戻す
 
-            # ページヘッダの表示
-            st.header(usr_choice)
+    #         # ページヘッダの表示
+    #         st.header(usr_choice)
 
-            # データフレームから
-            # 経過時間・表示件数・データの先頭部分を画面に表示する関数
-            view_data(df)
+    #         # データフレームから
+    #         # 経過時間・表示件数・データの先頭部分を画面に表示する関数
+    #         view_data(df)
 
-            # サイドバーのメッセージ
-            st.sidebar.success('データのプレビューを表示しました\n\n《データの分析》に進んでください')
+    #         # サイドバーのメッセージ
+    #         st.sidebar.success('データのプレビューを表示しました\n\n《データの分析》に進んでください')
 
-        else:
-            st.warning('《データの登録》から、視線データをアップロードしてください')
+    #     else:
+    #         st.warning('《データの登録》から、視線データをアップロードしてください')
 
 
     # メニュー：《データの分析（全体）》
@@ -932,152 +940,128 @@ def view_screen():
 
         if st.session_state['check_flg'] == True:
 
+            # st.sidebar.info('データの分析画面です。分析の対象をサブメニューから選択してください')
+
+            # サイドメニューの設定            
+            analyze_menus = ['【選択してください】', '視線移動量', 'ミニマップ', '戦闘ログ', 'ＨＰバー', '武器弾薬', 'まばたき'  ]
+            analyze_choice = st.sidebar.selectbox("分析対象", analyze_menus, disabled =False)
+
+            # メニュー：《全般》
+            if analyze_menus.index(analyze_choice) == 0:
+
              # セッションステートから戻す
-            df = st.session_state['df_csv']
+                df = st.session_state['df_csv']
 
-            # ページヘッダの表示
-            st.header(usr_choice)
+                # ページヘッダの表示
+                st.header(usr_choice)
 
-            # 解析した結果を2カラムで表示する関数
-            view_analyze_data(df)
+                # 解析した結果を2カラムで表示する関数
+                view_analyze_data(df)
 
-        else:
-            st.warning('《データの登録》から、視線データをアップロードしてください')
-
-    # メニュー：《データの分析（視線移動量）》
-    if usr_menus.index(usr_choice) == 4:
-
-        if st.session_state['check_flg'] == True:
+            # メニュー：《視線移動量》
+            if analyze_menus.index(analyze_choice) == 1:
 
             # しぃちゃんからのアドバイス
-            text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('<R>視線移動量</>はプレイ中にどれだけ視線が横や縦に動いたかを表す値です。<P>初級者</>と<G>上級者</>では、横方向の視線移動に大きな違いはありませんが、<R>縦方向</>は<G>上級者</>のほうが<R>移動量が大きい</>傾向があります。'))
-            stc.html(text_html, height=175)
+                text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('<R>視線移動量</>はプレイ中にどれだけ視線が横や縦に動いたかを表す値です。<B>初級者</>と<G>上級者</>では、横方向の視線移動に大きな違いはありませんが、<R>縦方向</>は<G>上級者</>のほうが<R>やや移動量が大きい</>傾向があるようです。'))
+                stc.html(text_html, height=175)
 
-            # セッションステートから戻す
-            df = st.session_state['df_csv']
+                # セッションステートから戻す
+                df = st.session_state['df_csv']
 
-            # データフレームから
-            # 「視線移動量(横[0]・縦[1])(正規化_横[2]・正規化_縦[3])」
-            # 「ミニマップを見た割合[4]」「HPバーを見た割合[5]」
-            # 「戦闘ログを見た割合[6]」「武器弾薬を見た割合[7]」
-            # 「まばたきの間隔[8]・割合[9]」を解析する関数
-            lst = analyze_data(df)
+                # データフレームから
+                # 「視線移動量(横[0]・縦[1])(正規化_横[2]・正規化_縦[3])」
+                # 「ミニマップを見た割合[4]」「HPバーを見た割合[5]」
+                # 「戦闘ログを見た割合[6]」「武器弾薬を見た割合[7]」
+                # 「まばたきの間隔[8]・割合[9]」を解析する関数
+                lst = analyze_data(df)
 
-            view_bar_graph(lst[2], 10000, '視線移動量_正横', '視線移動量(横方向)')
-            view_bar_graph(lst[3], 10000, '視線移動量_正縦', '視線移動量(縦方向)')
+                view_bar_graph(lst[2], 10000, '視線移動量_正横', '視線移動量(横方向)')
+                view_bar_graph(lst[3], 10000, '視線移動量_正縦', '視線移動量(縦方向)')
 
-        else:
-            st.warning('《データの登録》から、視線データをアップロードしてください')
+            # メニュー：《ミニマップ》
+            if analyze_menus.index(analyze_choice) == 2:
 
+                # しぃちゃんからのアドバイス
+                text_html = func_html.make_html_balloon('enushi_020.png', func_html.trans_html_tag('ゲーム中に<R>画面左上のミニマップ</>を見ていた割合です。<B>初級者</>よりも<G>上級者</>のほうが、よくミニマップを確認しています。'))
+                stc.html(text_html, height=150)
 
-    # メニュー：《データの分析（ミニマップ）》
-    if usr_menus.index(usr_choice) == 5:
+                # セッションステートから戻す
+                df = st.session_state['df_csv']
 
-        if st.session_state['check_flg'] == True:
-
-            # しぃちゃんからのアドバイス
-            text_html = func_html.make_html_balloon('enushi_020.png', func_html.trans_html_tag('ゲーム中に<R>画面左上のミニマップ</>を見ていた割合です。<P>初級者</>よりも<G>上級者</>のほうが、よくミニマップを確認しています。'))
-            stc.html(text_html, height=150)
-
-            # セッションステートから戻す
-            df = st.session_state['df_csv']
-
-            # データフレームを解析する関数
-            lst = analyze_data(df)
-            view_bar_graph(lst[4], 100, 'ミニマップ割合', 'ミニマップを見た割合(％)')
-
-        else:
-            st.warning('《データの登録》から、視線データをアップロードしてください')
+                # データフレームを解析する関数
+                lst = analyze_data(df)
+                view_bar_graph(lst[4], 100, 'ミニマップ割合', 'ミニマップを見た割合(％)')
 
 
-    # メニュー：《データの分析（戦闘ログ）》
-    if usr_menus.index(usr_choice) == 6:
+            # メニュー：《戦闘ログ》
+            if analyze_menus.index(analyze_choice) == 3:
 
-        if st.session_state['check_flg'] == True:
+                # しぃちゃんからのアドバイス
+                text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('ゲーム中に<R>画面右上の戦闘ログ</>を見ていた割合です。わずかな違いですが<B>初級者</>より<G>上級者</>のほうがログをチェックしているようです。'))
+                stc.html(text_html, height=150)
 
-            # しぃちゃんからのアドバイス
-            text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('ゲーム中に<R>画面右上の戦闘ログ</>を見ていた割合です。わずかな違いですが<P>初級者</>より<G>上級者</>のほうがチェックしているようです。'))
-            stc.html(text_html, height=150)
+                # セッションステートから戻す
+                df = st.session_state['df_csv']
 
-            # セッションステートから戻す
-            df = st.session_state['df_csv']
+                # データフレームを解析する関数
+                lst = analyze_data(df)
+                view_bar_graph(lst[6], 100, '戦闘ログ割合', '戦闘ログを見た割合(％)')
 
-            # データフレームを解析する関数
-            lst = analyze_data(df)
-            view_bar_graph(lst[6], 100, '戦闘ログ割合', '戦闘ログを見た割合(％)')
+            # メニュー：《ＨＰバー》
+            if analyze_menus.index(analyze_choice) == 4:
 
-        else:
-            st.warning('《データの登録》から、視線データをアップロードしてください')
+                # しぃちゃんからのアドバイス
+                text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('ゲーム中に<R>画面左下のＨＰバー</>を見ていた割合です。<G>上級者</>のほうがＨＰバーを見る頻度が多く、<R>体力の把握と管理をしっかり行っている</>ことが読み取れます。'))
+                stc.html(text_html, height=150)
 
+                # セッションステートから戻す
+                df = st.session_state['df_csv']
 
-    # メニュー：《データの分析（ＨＰバー）》
-    if usr_menus.index(usr_choice) == 7:
+                # データフレームを解析する関数
+                lst = analyze_data(df)
+                view_bar_graph(lst[7], 100, 'ＨＰバー割合', 'ＨＰバーを見た割合(％)')
 
-        if st.session_state['check_flg'] == True:
+            # メニュー：《武器弾薬》
+            if analyze_menus.index(analyze_choice) == 5:
 
-            # しぃちゃんからのアドバイス
-            text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('ゲーム中に<R>画面左下のＨＰバー</>を見ていた割合です。<G>上級者</>のほうがＨＰバーを見る頻度が多く、<R>体力管理をしっかり行っている</>ことが読み取れます'))
-            stc.html(text_html, height=150)
+                # しぃちゃんからのアドバイス
+                text_html = func_html.make_html_balloon('enushi_020.png', func_html.trans_html_tag('ゲーム中に<R>画面右下の武器弾薬</>を見ていた割合です。ゲームに慣れていない<B>初級者</>のほうが<R>武器弾薬を頻繁に確認してしまっている</>ようです。'))
+                stc.html(text_html, height=150)
 
-            # セッションステートから戻す
-            df = st.session_state['df_csv']
+                # セッションステートから戻す
+                df = st.session_state['df_csv']
 
-            # データフレームを解析する関数
-            lst = analyze_data(df)
-            view_bar_graph(lst[7], 100, 'ＨＰバー割合', 'ＨＰバーを見た割合(％)')
+                # データフレームを解析する関数
+                lst = analyze_data(df)
+                view_bar_graph(lst[7], 100, '武器弾薬割合', '武器弾薬を見た割合(％)')
 
-        else:
-            st.warning('《データの登録》から、視線データをアップロードしてください')
+            # メニュー：《まばたき》
+            if analyze_menus.index(analyze_choice) == 6:
 
+                # しぃちゃんからのアドバイス
+                text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('<G>上級者</>のほうが<R>まばたきの間隔が短く</>かつ<R>目を閉じている時間も長い</>ことが分かります。まばたきとゲームのスキルにどんな関係があるのかは、現在 研究中です。'))
+                stc.html(text_html, height=150)
 
-    # メニュー：《データの分析（武器弾薬）》
-    if usr_menus.index(usr_choice) == 8:
+                # セッションステートから戻す
+                df = st.session_state['df_csv']
 
-        if st.session_state['check_flg'] == True:
+                # データフレームを解析する関数
+                lst = analyze_data(df)
+                view_bar_graph(lst[8], 1, 'まばたき間隔', 'まばたきの間隔(秒)')
+                view_bar_graph(lst[9], 1, 'まばたき割合', '目を閉じていた割合(％)')
 
-            # しぃちゃんからのアドバイス
-            text_html = func_html.make_html_balloon('enushi_020.png', func_html.trans_html_tag('ゲーム中に<R>画面右下の武器弾薬</>を見ていた割合です。ゲームに慣れていない<P>初級者</>のほうが<R>武器弾薬を頻繁に確認してしまっている</>ようです。'))
-            stc.html(text_html, height=150)
-
-            # セッションステートから戻す
-            df = st.session_state['df_csv']
-
-            # データフレームを解析する関数
-            lst = analyze_data(df)
-            view_bar_graph(lst[7], 100, '武器弾薬割合', '武器弾薬を見た割合(％)')
-
-        else:
-            st.warning('《データの登録》から、視線データをアップロードしてください')
-
-
-    # メニュー：《データの分析（まばたき）》
-    if usr_menus.index(usr_choice) == 9:
-
-        if st.session_state['check_flg'] == True:
-
-            # しぃちゃんからのアドバイス
-            text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('<G>上級者</>のほうが、ゲーム中に<R>まばたきの間隔が短く</>、<R>目を閉じている時間も長い</>ことが分かります。まばたきとゲームにどんな関係があるのかは現在、研究中です。'))
-            stc.html(text_html, height=150)
-
-            # セッションステートから戻す
-            df = st.session_state['df_csv']
-
-            # データフレームを解析する関数
-            lst = analyze_data(df)
-            view_bar_graph(lst[8], 1, 'まばたき間隔', 'まばたきの間隔(秒)')
-            view_bar_graph(lst[9], 1, 'まばたき割合', '目を閉じていた割合(％)')
 
         else:
             st.warning('《データの登録》から、視線データをアップロードしてください')
 
 
     # メニュー：《視点のヒートマップ表示》
-    if usr_menus.index(usr_choice) == 10:
+    if usr_menus.index(usr_choice) == 2:
 
         if st.session_state['check_flg'] == True:
 
             # サイドメニューの設定            
-            map_menus = ['プレイ画面', 'ヒートマップ', 'ヘックス', '等高線風' ]
+            map_menus = ['【選択してください】', 'ヒートマップ', 'ヘックス', '等高線風' ]
             map_choice = st.sidebar.selectbox("表示種別", map_menus, disabled =False)
 
             # メニュー：《視点のヒートマップ表示》
@@ -1172,7 +1156,7 @@ def view_screen():
 
 
     # メニュー：《プレイヤーレベルの診断》
-    if usr_menus.index(usr_choice) == 11:
+    if usr_menus.index(usr_choice) == 4:
 
         if st.session_state['check_flg'] == True:
 
@@ -1235,7 +1219,10 @@ def view_screen():
 
             # st.info(valid_pred)
             # st.success(f'このデータは「{int(valid_pred_proba[0][0]*100)}%」の確率で「上級者の視線」です')
-            st.markdown(f'# このデータは… :red[「{int(valid_pred_proba[0][0]*100)}%」]の確率で:green[上級者の視線]です')
+            senior_per = int(valid_pred_proba[0][0]*100)
+            # if senior_per >= 85:
+            #     senior_per = 85
+            st.markdown(f'# このデータの:green[上級者の視線]との一致率は :red[「{senior_per}%」]です')
 
             # 特徴量の設定（重要度の可視化用）
             features = ['視線移動量(横)', '視線移動量(縦)', 'ミニマップを見た割合', '戦闘ログを見た割合', 'ＨＰバーを見た割合', '武器弾薬を見た割合',]
@@ -1243,8 +1230,8 @@ def view_screen():
             print(features)
 
             # しぃちゃんからのアドバイス
-            text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('入力されたデータをもとに<G>上級者の視線</>である確率を<R>AIが算出</>しました。<C>また確率を算出する際に重要視した要素を表したのが以下のグラフです。プレイ中は<R>HPバーやミニマップ</>で状況を把握しつつ、<B>武器弾薬を見ない</>ようになれると、<G>上級者</>に近づけるかも…しれません。'))
-            stc.html(text_html, height=200)
+            text_html = func_html.make_html_balloon('enushi_010.png', func_html.trans_html_tag('入力されたデータをもとに<G>上級者の視線の特徴</>と、どの程度一致しているかを<R>AIが算出</>しました。<C>APEXの<B>初級者</>のかたでも、<R>視線の使い方が上手な人</>は、この数値が高めに算出されます<C>（逆にAPEXの上級者のかたでも、視線の使い方に個性がある人は、この数値が低めに算出されます）<C><C>また、AIが確率を算出する際に<R>重要視した要素</>を表したのが以下のグラフです。<C>プレイ中は<R>HPバーやミニマップ</>を常に把握しつつ、<B>武器弾薬はあまり見過ぎない</>ように意識すると、<G>上級者の視線</>に近づけるかもしれません。'))
+            stc.html(text_html, height=300)
 
             # 重要度の可視化
             st.caption('視線レベルの判定に使用したパラメーターの重要度（重み）')
